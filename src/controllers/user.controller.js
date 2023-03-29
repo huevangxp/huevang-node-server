@@ -1,5 +1,7 @@
 const User = require('../models/user.model')
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
+require('dotenv').config()
 
 exports.create = async (req, res) => {
     try {
@@ -70,3 +72,47 @@ exports.delete = async (req, res) => {
         return res.status(500).json(error)
     }
 }
+
+// exports.login = async (req, res) => {
+//     try {
+//         const { name, password } = req.body
+//         // console.log(name,password);
+//         const user = await User.findOne({ where: { name: name } })
+//         if (!user) {
+//             return res.status(401).json({error:'Invalid username or password'})
+//         }
+
+//         isMatch = await bcrypt.compare(password, user.password);
+//         if (!isMatch) {
+//             return res.status(401).json({error:'Invalid username or password'})
+//         }
+//         const token = jwt.sign(
+//             {
+//                 id: user.id,
+//                 name: user.name,
+//             }, "mysecretkey", { expiresIn: '24h' })
+//         res.status(200).json(token)
+//     } catch (error) {
+//         return res.status(500).json(error)
+//     }
+// }
+
+exports.login = async (req, res) => {
+    try {
+        const name = req.body.name;
+        const password = req.body.password;
+        User.findOne({ where: { name: name } }).then((data) => {
+            const validPass = bcrypt.compare(password, data.password);
+            if (!validPass) {
+                return res.status(401).json({message:"password not match"})
+            }
+            const token = jwt.sign({id:data.id, name:data.name}, process.env.SECRETKEY, {expiresIn:60})
+            res.status(201).json({token: token})
+        }).catch((error) => {
+            return res.status(500).json(error)
+        })
+    } catch (error) {
+        return res.status(500).json(error)
+    }
+}
+

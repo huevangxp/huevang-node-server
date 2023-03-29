@@ -6,8 +6,6 @@ const sequelize = new Sequelize(process.env.DB,process.env.USER,process.env.PASS
     host:process.env.HOST,
     logging: false,
     timezone: '+07:00',
-    
-    
 })
 
 sequelize.authenticate().then(() => {
