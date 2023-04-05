@@ -18,14 +18,14 @@ const verifyToken = function (req, res, next) {
         const payload = jwt.verify(token[1], process.env.SECRETKEY)
     
         if (!payload) {
-            return res.status(401).json({message:'Unauthorized: verify token!'})
+            return res.status(401).json({message:'Unauthorized'})
         }
        
         req.payload = payload
         next()
     } catch (error) {
         req.payload = null
-        return res.status(500).json({message:'Internal server error!'+ error.message})
+        return res.status(401).json({message:'Unauthorized'})
     }
    
 }

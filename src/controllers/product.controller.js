@@ -2,8 +2,23 @@ const Product = require('../models/product.model')
 const sequelize = require('../configs/db')
 const {QueryTypes} = require('sequelize')
 const Catgory = require('../models/Category.model')
+const ProductImage = require('../models/product.image.model')
 
 
+exports.createProductImage = async (req, res) => {
+    const info = req.body
+    try {
+        await ProductImage.create(info)
+            .then((data) => {
+                res.status(201).json(data)
+            }).catch((error) => {
+                console.log(error);
+                res.status(404).json({ message: "create gategory error...!" })
+            })
+    } catch (error) {
+        return res.status(500).json(error)
+    }
+}
 exports.create = async (req, res) => {
     const info = req.body
     try {
@@ -22,25 +37,27 @@ exports.create = async (req, res) => {
 exports.select = async (req, res) => {
 
     try {
-        // const data = await Product.findAll({
-        //     include: [{
-        //         model: Catgory,
-        //         attributes:['name']
-        //     }, {
-        //         model: Product,
-        //         attributes:['name']}
-        //     ]
-        // })
-        // res.send(data)
-         await sequelize.query(`SELECT pr.id, pr.name, ca.name, pr.description, pr.qauntity,
+        
+        await sequelize.query(`SELECT pr.id, pr.name, ca.name, pr.description, pr.qauntity,
          pr.price, pr.createdAt, pr.updatedAt FROM products pr INNER JOIN catgories ca ON pr.category = ca.id`,
-             { type: QueryTypes.SELECT }).then((data) => {
-                return res.status(200).json(data)
+            { type: sequelize.QueryTypes.SELECT }).then(async (data) => {
+                let datas = [];
+                for (let i = 0; i < data.length; i++){
+                    const images = await sequelize.query(`SELECT  imageUrl FROM product_images  WHERE product = '${data[i].id}'`,
+                        { type: sequelize.QueryTypes.SELECT });
+                    data[i] = { ...data[i], images }
+                      datas = [...datas, data[i]]
+                }
+                // data.forEach(async(item, i) => {
+                //     const images = await sequelize.query(`SELECT  imageUrl FROM product_images  WHERE product = '${item.id}'`,
+                //         { type: QueryTypes.SELECT })
+                //     data[i] = {...data[i], images}
+                //      datas = [...datas, data[i]]
+                //  })
+                return res.status(200).json(datas)
              }).catch((error) => {
                  throw new Error(error)
             })
-        // const data = await Product.findAll();
-        // res.status(200).json(data)
     } catch (error) {
         return res.status(500).json({message:error.message})
     }

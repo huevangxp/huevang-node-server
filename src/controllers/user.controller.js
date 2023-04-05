@@ -4,12 +4,15 @@ const jwt = require('jsonwebtoken')
 require('dotenv').config()
 
 exports.create = async (req, res) => {
+    // const payload = req.payload;
+    // console.log('payload', payload);
     try {
         const { name, password } = req.body
         const newPass = await bcrypt.hash(password, 10)
         const createUser = {
             name: name,
-            password:newPass
+            password: newPass,
+            // admin_id:payload.id
         }
        await User.create(createUser)
         res.status(201).json(createUser)
@@ -18,6 +21,7 @@ exports.create = async (req, res) => {
     }
 }
 exports.select = async (req, res) => {
+    
     try {
         const user = await User.findAll()
         if (!user) {
@@ -106,7 +110,7 @@ exports.login = async (req, res) => {
             if (!validPass) {
                 return res.status(401).json({message:"password not match"})
             }
-            const token = jwt.sign({id:data.id, name:data.name}, process.env.SECRETKEY, {expiresIn:60})
+            const token = jwt.sign({id:data.id, name:data.name}, process.env.SECRETKEY, {expiresIn:'24h'})
             res.status(201).json({token: token})
         }).catch((error) => {
             return res.status(500).json(error)
